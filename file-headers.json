@@ -1,0 +1,12 @@
+{
+  "root": "src",
+  "repository": "https://github.com/prisma-api/prisma-api",
+  "patterns": [".js", ".jsx", ".ts", ".tsx"],
+  "exclude": ["node_modules"],
+  "name": "Prisma Api Community",
+  "email": "prisma.api.community@gmail.com",
+  "license": "MIT",
+  "licenseText": "THE SOFTWARE IS PROVIDED 'AS IS'",
+  "copyright": "prisma-api (c), All rights reserved",
+  "renewAll": false
+}

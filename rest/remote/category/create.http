@@ -1,0 +1,14 @@
+// Создание категории 
+POST https://boring-weekend.uyem.ru/api/v1/category/create HTTP/1.1
+content-type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksInBhc3N3b3JkIjoiJDJiJDEwJEJXcURhYXBXakdKeTc4TEtWRnpmLnV2MUg5c2p1UE92ZHhMdnRPWUZ4dUxaa05HZHprYnRxIiwiaWF0IjoxNjM0MTk1MTMzfQ.c_HInOsIfbKt82fCKfq4NzcfqRJsJmdKdLaWM_hYb2o
+
+// параметры
+{
+  "args": {
+    "data": {
+      "title": "first",
+      "image": "test1.png"
+    }
+  }
+}

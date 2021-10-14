@@ -1,0 +1,11 @@
+// Вход пользователя
+POST https://boring-weekend.uyem.ru/api/v1/user/login HTTP/1.1
+content-type: application/json
+
+// Параметры
+{
+  "login": {
+    "email": "19_pek@mail.ru",
+    "password": "123456"
+  }
+}

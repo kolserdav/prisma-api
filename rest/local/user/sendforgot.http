@@ -1,0 +1,15 @@
+// запрос на отправку письма для смены пароля
+POST http://localhost:3333/api/v1/user/sendforgot HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksInBhc3N3b3JkIjoiJDJiJDEwJDM1MTdBTS5kRUc1bkNqTHlqVWFTZE9Fc1htU1pLNkpZNFp2NEVETFMyRVlrMWY2Q2dpRm1pIiwiaWF0IjoxNjM0MTA5MzI3fQ.Z3k41HW6Hu0eYNQGr3NE7NFkJFTa1SYmxVXo7egAaro
+
+
+
+// параметры
+{
+  "args": {
+    "where": {
+      "id": 19
+    }
+  }
+}

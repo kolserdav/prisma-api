@@ -1,0 +1,12 @@
+// получение одной категории
+POST https://boring-weekend.uyem.ru/api/v1/category/findfirst HTTP/1.1
+content-type: application/json
+
+// параметры
+{
+  "args": {
+    "where": {
+      "id": 3
+    }
+  }
+}

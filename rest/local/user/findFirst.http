@@ -1,0 +1,12 @@
+// получение одного пользователя
+POST http://localhost:3333/api/v1/user/findfirst HTTP/1.1
+content-type: application/json
+
+// параметры
+{
+  "args": {
+    "where": {
+      "email": "19_pek@mail.ru"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// перечисление ролей
+enum Roles {
+  admin
+  user
+}
+
+// Таблица пользователей
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  name          String?
+  role          Roles?
+  confirmed     Boolean        @default(false)
+  confirmKey    String?
+  forgotKey     String?
+  createConfirm DateTime?
+  createForgot  DateTime?
+  updated_at    DateTime       @default(now())
+  created_at    DateTime       @default(now())
+  Category      Category[] // Категории созданные пользователем (админом)
+  UserCategory  UserCategory[] // Категории добавленные пользователю
+  Event         Event[] // События добавленные пользователем (админом)
+  Favorites     Favorites[] // Избранные события помеченные пользователем
+}
+
+// Таблица категорий
+model Category {
+  id           Int            @id @default(autoincrement())
+  title        String         @unique
+  description  String?        @db.MediumText
+  image        String
+  adminId      Int? // Ид админа создавшего или изменившего категорию
+  User         User?          @relation(fields: [adminId], references: [id])
+  updated_at   DateTime       @default(now())
+  created_at   DateTime       @default(now())
+  UserCategory UserCategory[] // связь с пользователями привязавшими себе эту категорию
+}
+
+// Таблица связей пользователей и категорий, т.е. туда добавляются добавленные пользователю категории
+model UserCategory {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  categoryId Int
+  User       User     @relation(fields: [userId], references: [id])
+  Category   Category @relation(fields: [categoryId], references: [id])
+  updated_at DateTime @default(now())
+  created_at DateTime @default(now())
+}
+
+// Таблица событий
+model Event {
+  id          Int         @id @default(autoincrement())
+  title       String      @unique
+  description String?     @db.MediumText
+  image       String
+  adminId     Int? // Ид админа создавшего или изменившего категорию
+  User        User?       @relation(fields: [adminId], references: [id])
+  updated_at  DateTime    @default(now())
+  created_at  DateTime    @default(now())
+  Favorites   Favorites[] // Связь событий с пользователями отметившими как понравившиеся
+}
+
+// Таблица связей пользователей и событий, т.е. туда добаляются лайканые события
+model Favorites {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  categoryId Int
+  User       User     @relation(fields: [userId], references: [id])
+  Event      Event    @relation(fields: [categoryId], references: [id])
+  updated_at DateTime @default(now())
+  created_at DateTime @default(now())
+}

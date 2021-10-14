@@ -1,0 +1,14 @@
+// Создание пользователя, Регистрация
+POST http://localhost:3333/api/v1/user/create HTTP/1.1
+content-type: application/json
+
+// параметры
+{
+  "args": {
+    "data": {
+      "email": "19_pek@mail.ru",
+      "password": "123456"
+    }
+  },
+  "passwordRepeat": "123456"
+}

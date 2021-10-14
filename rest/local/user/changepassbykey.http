@@ -1,0 +1,15 @@
+// изменение пароля пользователя по ключу
+POST http://localhost:3333/api/v1/user/changepassbykey HTTP/1.1
+Content-Type: application/json
+
+
+// параметры
+{
+  "changePassword": {
+    "key": "zKnGKHXlmrMxEbWWsI96LXawBtE3LKCVe",
+    "email": "19_pek@mail.ru",
+    "oldPassword": "123456",
+    "password": "123456",
+    "passwordRepeat": "123456"
+  }
+}

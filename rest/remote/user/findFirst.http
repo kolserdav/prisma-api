@@ -1,0 +1,12 @@
+// получение одного пользователя
+POST https://boring-weekend.uyem.ru/api/v1/user/findfirst HTTP/1.1
+content-type: application/json
+
+// параметры
+{
+  "args": {
+    "where": {
+      "id": 13
+    }
+  }
+}

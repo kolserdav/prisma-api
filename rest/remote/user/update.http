@@ -1,0 +1,19 @@
+// изменение пользователя
+POST https://boring-weekend.uyem.ru/api/v1/user/update HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksInBhc3N3b3JkIjoiJDJiJDEwJDNTbDJqa2g5NXBPQVpXVzFncmFOYS5TTy51WVRtYlhMTTlRckpHQWNQbXVrVzBDQ1JIeE51IiwiaWF0IjoxNjM0MTAwNDYxfQ.IjlHZgNn3ym-cKv8HmSD0I5dHfKyvZo6AoyK7mJ_x8c
+
+
+
+// параметры
+{
+  "args": {
+    "where": {
+      "id": 19
+    },
+    "data": {
+      "name": "Sergey",
+      "email": "new@ema.il"
+    }
+  }
+}

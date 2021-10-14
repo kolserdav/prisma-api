@@ -1,0 +1,11 @@
+// Вход пользователя
+POST http://localhost:3333/api/v1/user/login HTTP/1.1
+content-type: application/json
+
+// Параметры
+{
+  "login": {
+    "email": "19_pek@mail.ru",
+    "password": "123456"
+  }
+}

@@ -1,0 +1,17 @@
+// получение нескольких категорий
+POST http://localhost:3333/api/v1/category/findmany HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTksInBhc3N3b3JkIjoiJDJiJDEwJEJXcURhYXBXakdKeTc4TEtWRnpmLnV2MUg5c2p1UE92ZHhMdnRPWUZ4dUxaa05HZHprYnRxIiwiaWF0IjoxNjM0MTg5NjkyfQ.lbUfSI0L3YIZFLCxQxTE3S8BOF1QxRrMHl58ovTCxRk
+
+
+
+// параметры
+{
+  "args": {
+    "where": {
+    
+  },
+  "skip": 0,
+  "take": 2
+  }
+}
