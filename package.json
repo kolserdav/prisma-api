@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "main": "dist/index.js",
   "repository": "https://github.com/prisma-api/prisma-api",
-  "author": "Sergey Kolmiller <uyem.ru@gmail.com>",
+  "maintainers": [
+    "Sergey Kolmiller <uyem.ru@gmail.com>"
+  ],
   "license": "MIT",
   "prisma": {
     "schema": "orm/schema.prisma"
