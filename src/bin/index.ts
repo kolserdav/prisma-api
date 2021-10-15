@@ -16,20 +16,35 @@
 import fs from 'fs';
 import path from 'path';
 import childProcess from 'child_process';
+import * as utils from '../core/utils';
 
 const { spawn } = childProcess;
+
+const { NODE_ENV } = process.env;
+const prod = NODE_ENV === 'production';
 
 (async () => {
   /**
    * Переключатель по третьему параметру команды
    */
+  const arg0 = process.argv[0];
+  const arg2 = process.argv[2];
+  const version = `Prisma Api version ${process.env.npm_package_version}`;
+  const help = `
+    ${version}
+> prisma-api [options] <command>
+COMMANDS:
+build - build project
+  `;
   let rootPath: string;
-  switch (process.argv[2]) {
+  switch (arg2) {
     case 'build':
-      rootPath = path.resolve(__dirname, './index.js');
-      const spawnRes = await new Promise((resolve, reject) => {
+      console.log(NODE_ENV);
+      rootPath = path.relative('prisma-api', arg0);
+      console.log(rootPath);
+      const spawnRes: Buffer = await new Promise((resolve, reject) => {
         console.log(rootPath);
-        const yarn = spawn.call('tsc', '-p', [rootPath], {
+        const yarn = spawn.call('sh', 'tsc', ['-p', rootPath], {
           cwd: rootPath,
         });
         yarn.stdout?.on('data', (data) => {
@@ -42,9 +57,22 @@ const { spawn } = childProcess;
           console.log(`child process exited with code ${code}`);
         });
       });
-      console.log(spawnRes);
+      const spawnResStr = spawnRes.toString();
+      console.log();
+      if (spawnResStr.match(/TS5057/)) {
+        utils.debugLog(new Error(spawnResStr), 'Try run command <prisma-api init>');
+      }
       break;
+    case '-h' || '--help':
+      console.info(help);
+      break;
+    case '-v' || '--version':
+      console.info(version);
     default:
-      console.info('Allowed only: "copy" parameters');
+      console.info(`
+error Unknown command ${arg2}
+Try run "prisma-api --help"
+        ${help}
+      `);
   }
 })();

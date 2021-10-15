@@ -59,7 +59,7 @@ export function getHash(count: number): string {
 }
 
 /**
- * Единая функция для вывода в лог
+ * Единая функция для записи ошибок в лог
  * @param err // Объект ошибки если требуется иначе передаем null
  * @param req // Объект запроса express
  * @param message // Сообщение
@@ -79,6 +79,22 @@ export function saveLog(
     });
   } else {
     console.warn(new Date(), message, body);
+  }
+}
+
+/**
+ * Единая функция для вывода отладочных сообщений
+ * @param err // Объект ошибки если требуется иначе передаем null
+ * @param message // Сообщение
+ * @param body // Дополнительные данные для лога
+ */
+export function debugLog(err: Error | null | any, message: string, context?: any): void {
+  if (err) {
+    console.error(new Date(), err, '\n', message, {
+      context: context ? context : null,
+    });
+  } else {
+    console.warn(new Date(), '\n', message, context);
   }
 }
 
