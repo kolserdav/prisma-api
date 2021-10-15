@@ -6,7 +6,7 @@
  * License Text: THE SOFTWARE IS PROVIDED 'AS IS'
  * Copyright: prisma-api (c), All rights reserved
  * Create date: Thu Oct 14 2021 17:46:52 GMT+0700 (Krasnoyarsk Standard Time)
-******************************************************************************************/
+ ******************************************************************************************/
 import { User, Prisma, PrismaClient } from '@prisma/client';
 import type * as Types from '../../types';
 import * as utils from '../../utils';

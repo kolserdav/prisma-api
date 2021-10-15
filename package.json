@@ -1,6 +1,6 @@
 {
   "name": "prisma-api",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "repository": "https://github.com/prisma-api/prisma-api",
   "maintainers": [

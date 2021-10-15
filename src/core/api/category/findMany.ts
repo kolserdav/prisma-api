@@ -6,7 +6,7 @@
  * License Text: THE SOFTWARE IS PROVIDED 'AS IS'
  * Copyright: prisma-api (c), All rights reserved
  * Create date: Thu Oct 14 2021 17:46:52 GMT+0700 (Krasnoyarsk Standard Time)
-******************************************************************************************/
+ ******************************************************************************************/
 import { Prisma, PrismaClient, Category } from '@prisma/client';
 import type * as Types from '../../types';
 import * as utils from '../../utils';
@@ -14,12 +14,12 @@ import * as utils from '../../utils';
 const prisma = new PrismaClient();
 
 /**
- * изменение одной категории /api/v1/category/update
- * @param {{args: Prisma.CategoryUpdateArgs}}
- * @returns {Category | null}
+ * получение нескольких категорий /api/v1/category/findmany
+ * @param {{args: Prisma.CategoryFindManyArgs}}
+ * @returns {Category[] | null}
  */
 interface Args extends Types.GlobalParams {
-  args: Prisma.CategoryUpdateArgs;
+  args: Prisma.CategoryFindManyArgs;
   login?: {
     email: string;
     password: string;
@@ -29,35 +29,55 @@ interface Args extends Types.GlobalParams {
 const middleware: Types.NextHandler<any, Args, any> = async (req, res, next) => {
   const { body } = req;
   const { args, lang } = body;
+  const newArgs = args !== undefined ? args : {};
+  req.body.args = newArgs;
   next();
 };
 
-const handler: Types.RequestHandler<any, Args, Category | null> = async (req, res) => {
+const handler: Types.RequestHandler<any, Args, Category[]> = async (req, res) => {
   const { body } = req;
   const { args, lang } = body;
-  let result;
+  const { where, skip, take } = args;
+  let count;
   try {
-    result = await prisma.category.update(args);
-  } catch (err) {
-    utils.saveLog(err, req, 'Error update category', body);
+    count = await prisma.category.count({
+      where,
+    });
+  } catch (e) {
+    utils.saveLog(e, req, 'Error get count of categories', { where });
     return res.status(500).json({
       status: utils.ERROR,
       message: lang.SERVER_ERROR,
-      data: null,
+      stdErrMessage: utils.getStdErrMessage(e),
+      data: [],
+    });
+  }
+  let result;
+  try {
+    result = await prisma.category.findMany(args);
+  } catch (err) {
+    utils.saveLog(err, req, 'Error get categories', body);
+    return res.status(500).json({
+      status: utils.ERROR,
+      message: lang.SERVER_ERROR,
+      data: [],
       stdErrMessage: utils.getStdErrMessage(err),
     });
   }
-  if (result === null) {
+  if (result.length === 0) {
     return res.status(404).json({
       status: utils.WARNING,
       message: lang.NOT_FOUND,
-      data: null,
+      data: [],
     });
   }
-  return res.status(201).json({
+  return res.status(200).json({
     status: utils.SUCCESS,
-    message: lang.DATA_SAVED,
+    message: lang.DATA_RECEIVED,
     data: result,
+    count,
+    skip: skip || null,
+    take: take || null,
   });
 };
 
