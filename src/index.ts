@@ -15,7 +15,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
-import type { PrismaApiTypes } from '..';
+import type { PrismaApiTypes } from '../index';
 import server from './workers/server';
 
 export default function prismaApi(args: PrismaApiTypes.PrismaApiArgs) {
