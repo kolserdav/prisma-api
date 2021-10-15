@@ -7,9 +7,18 @@
  * Copyright: prisma-api (c), All rights reserved
  * Create date: Sat Oct 16 2021 00:29:34 GMT+0700 (Krasnoyarsk Standard Time)
  ******************************************************************************************/
-/**
- * Этот файл будет содержать логику по
- * анализу параметров и создания нужных
- * файлов для приложения клиента
- */
-export const s = 1;
+import fs from 'fs';
+import path from 'path';
+const arg1 = process.argv[2];
+let data, filePath;
+switch (arg1) {
+  case 'env':
+    filePath = path.resolve(__dirname, '../bin/index.js');
+    data = fs.readFileSync(filePath).toString();
+    data = '#!/usr/bin/env node\n' + data;
+    fs.writeFileSync(filePath, data);
+    fs.chmodSync(filePath, '755');
+    console.info(`Set up env for file ${filePath}`);
+    break;
+  default:
+}
