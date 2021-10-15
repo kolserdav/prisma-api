@@ -6,7 +6,7 @@
  * License Text: THE SOFTWARE IS PROVIDED 'AS IS'
  * Copyright: prisma-api (c), All rights reserved
  * Create date: Thu Oct 14 2021 17:46:52 GMT+0700 (Krasnoyarsk Standard Time)
-******************************************************************************************/
+ ******************************************************************************************/
 /* eslint-disable no-case-declarations */
 
 /**
@@ -15,28 +15,34 @@
 
 import fs from 'fs';
 import path from 'path';
+import childProcess from 'child_process';
+
+const { spawn } = childProcess;
 
 (async () => {
   /**
    * Переключатель по третьему параметру команды
    */
+  let rootPath: string;
   switch (process.argv[2]) {
-    /**
-     * Копирует авто сгенерированные типы сущностей базы данных в src/types/generated/prisma.d.ts
-     */
-    case 'copy':
-      const databaseTypesPath = path.resolve(
-        __dirname,
-        '../../node_modules/.prisma/client/index.d.ts'
-      );
-      const generateTypesPath = path.resolve(__dirname, '../../src/api/prisma.d.ts');
-      try {
-        fs.copyFileSync(databaseTypesPath, generateTypesPath);
-      } catch (e) {
-        console.error(e);
-        break;
-      }
-      console.info(`Types from ${databaseTypesPath} to ${generateTypesPath} copied successfully!`);
+    case 'build':
+      rootPath = path.resolve(__dirname, './index.js');
+      const spawnRes = await new Promise((resolve, reject) => {
+        console.log(rootPath);
+        const yarn = spawn.call('tsc', '-p', [rootPath], {
+          cwd: rootPath,
+        });
+        yarn.stdout?.on('data', (data) => {
+          resolve(data);
+        });
+        yarn.stderr?.on('data', (err) => {
+          reject(err);
+        });
+        yarn.on('close', (code) => {
+          console.log(`child process exited with code ${code}`);
+        });
+      });
+      console.log(spawnRes);
       break;
     default:
       console.info('Allowed only: "copy" parameters');

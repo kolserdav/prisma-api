@@ -8,16 +8,16 @@
  * Create date: Fri Oct 15 2021 23:58:11 GMT+0700 (Krasnoyarsk Standard Time)
  ******************************************************************************************/
 /**
- * Этот файл экспортирует пространство имет prismaApi
- * которое будет подключать пользователь в индексном файле
- * своего сервера
+ * Этот файл будет содержать типы для
+ * пользователя Typescript
  */
-import dotenv from 'dotenv';
-dotenv.config();
-import express from 'express';
-import type { PrismaApiTypes } from '..';
-import server from './workers/server';
 
-export default function prismaApi(args: PrismaApiTypes.PrismaApiArgs) {
-  return server(args);
+export namespace PrismaApiTypes {
+  export interface PrismaApiArgs {
+    cors?: string; // defaul: '*'
+    maxBodySize?: string; // default: '5mb'
+    i18n?: string; // default: 'core/locales'
+  }
 }
+
+export default function prismaApi(args: PrismaApiArgs);
