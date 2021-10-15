@@ -10,7 +10,7 @@
 /* eslint-disable no-unused-vars */
 import type * as E from 'express';
 import { User } from '@prisma/client';
-import type { Locale } from './locales/types';
+import type { Locale } from './core/locales/types';
 namespace Api {
   export type Status = 'error' | 'warning' | 'success';
 
