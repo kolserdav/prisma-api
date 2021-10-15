@@ -15,7 +15,7 @@
  * сервера, затем запускает прослушиватель подключив эти файлы
  * ассинхронно
  */
-import type { PrismaApiTypes } from '../../..';
+import type { PrismaApiTypes } from '../../../index';
 import coreServer from '../../core/index';
 
 export default function workerServer(args: PrismaApiTypes.PrismaApiArgs) {
