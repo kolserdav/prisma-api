@@ -7,7 +7,7 @@
     "outDir": "./dist",
     "removeComments": true,
     "strict": true,
-    "rootDirs": ["src", "lib"],
+    "rootDir": "src",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,

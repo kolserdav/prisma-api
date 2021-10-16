@@ -12,7 +12,6 @@
  */
 import express from 'express';
 import cors from 'cors';
-import * as lib from '../../lib';
 import * as api from './api';
 import * as middleware from './middleware';
 import * as utils from './utils';
