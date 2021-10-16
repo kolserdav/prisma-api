@@ -13,7 +13,6 @@
  * Файл скриптов для помощи в разработке
  */
 
-import fs from 'fs';
 import path from 'path';
 import childProcess from 'child_process';
 import * as utils from '../core/utils';
@@ -43,7 +42,6 @@ build - build project
       rootPath = path.relative('prisma-api', arg0);
       console.log(rootPath);
       const spawnRes: Buffer = await new Promise((resolve, reject) => {
-        console.log(rootPath);
         const yarn = spawn.call('sh', 'tsc', ['-p', rootPath], {
           cwd: rootPath,
         });
