@@ -38,4 +38,10 @@ server.get('/confirm', api.user.update.middleware, api.user.update.handler);
 // страницы при переходе по ссылке получения ключа для смены пароля
 server.get('/forgot', api.user.update.middleware, api.user.update.handler);
 
-export default server;
+export default {
+  server: (args: any) => {
+    console.log('core', args);
+    return server;
+  },
+  process,
+};

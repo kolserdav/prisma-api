@@ -14,10 +14,18 @@
  */
 import dotenv from 'dotenv';
 dotenv.config();
-import express from 'express';
 import type { PrismaApiTypes } from '../index';
 import server from './workers/server';
 
 export default function prismaApi(args: PrismaApiTypes.PrismaApiArgs) {
   return server(args);
 }
+
+const app = server({ maxBodySize: '10mb' });
+app.get('/', (req, res) => {
+  console.log(1);
+  return res.status(200).json({ s: '1' });
+});
+app.listen(3000, () => {
+  console.log('listen', 3000);
+});
