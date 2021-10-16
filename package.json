@@ -1,7 +1,7 @@
 {
   "name": "prisma-api",
   "version": "1.0.4",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "repository": "https://github.com/prisma-api/prisma-api",
   "maintainers": [
     "Sergey Kolmiller <uyem.ru@gmail.com>"
@@ -15,7 +15,7 @@
   },
   "types": "index.d.ts",
   "engines": {
-    "node": ">=12.6"
+    "node": "16.x"
   },
   "files": [
     "README.md",
@@ -24,13 +24,12 @@
     "index.d.ts"
   ],
   "scripts": {
-    "rollup": "rimraf dist && tsc -p . && rollup -c rollup.config.js",
+    "rollup": "rimraf dist && tsc -p . && rollup -c rollup.config.js -w",
     "watch": "gulp-cli watch",
-    "start": "node dist/index.js",
+    "start": "node ${npm_package_main}",
     "dev:watch": "tsc -p . -w",
     "dev:start": "NODE_ENV=development nodemon ${npm_package_main}",
     "dev:start:win": "set NODE_ENV=development && nodemon ${npm_package_main}",
-    "dev:build": "yarn headers && yarn build",
     "build": "tsc -p . && yarn script env",
     "migrate:dev": "yarn format && yarn generate && prisma migrate dev --preview-feature",
     "migrate": "prisma migrate deploy --preview-feature && yarn generate",
@@ -39,7 +38,7 @@
     "studio": "prisma studio",
     "generate": "prisma generate",
     "format": "prisma format",
-    "script": "node dist/scripts/index.js",
+    "script": "node dist/src/scripts/index.js",
     "headers": "NODE_ENV=production file-headers"
   },
   "devDependencies": {
@@ -69,7 +68,9 @@
     "prettier": "^2.4.1",
     "prisma": "^3.2.1",
     "rollup": "^2.58.0",
-    "typescript": "^4.4.3"
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.3",
+    "yarn": "^1.22.16"
   },
   "dependencies": {
     "@prisma/client": "^3.2.1",

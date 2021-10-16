@@ -19,7 +19,6 @@ import type { PrismaApiTypes } from '../../../index';
 import coreServer from '../../core/index';
 
 export default function workerServer(args: PrismaApiTypes.PrismaApiArgs) {
-  const server = Object.assign({}, coreServer);
-  console.log(args);
-  return server;
+  const { server, process } = coreServer;
+  return coreServer.server(args);
 }
