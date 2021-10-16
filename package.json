@@ -63,6 +63,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "file-headers": "^2.0.2",
     "gulp": "^4.0.2",
+    "nodemon": "^2.0.13",
     "prettier": "^2.4.1",
     "prisma": "^3.2.1",
     "typescript": "^4.4.3",

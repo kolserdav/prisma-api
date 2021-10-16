@@ -70,15 +70,13 @@ build - build project
   switch (arg2) {
     case 'build':
       rootPath = path.relative('prisma-api', arg0);
-      console.log(rootPath);
-      const spawnRes = getSpawn({
+      const buildRes = await getSpawn({
         command: 'npm',
         args: ['run', 'build'],
-      });
-      spawnRes.catch((e) => {
+      }).catch((e) => {
         console.error(ERROR, e);
       });
-      const spawnResStr = spawnRes.toString();
+      const spawnResStr = buildRes.toString();
       if (spawnResStr.match(/TS5057/)) {
         utils.debugLog(new Error(spawnResStr), 'Try run command <prisma-api init>');
       }
@@ -88,6 +86,16 @@ build - build project
       break;
     case '-v' || '--version':
       console.info(version);
+      break;
+    case 'start':
+      const spawnRes = await getSpawn({
+        command: 'npm',
+        args: ['run', 'start'],
+      }).catch((e) => {
+        console.error(ERROR, e);
+      });
+      console.log(spawnRes);
+      break;
     default:
       console.info(`
 error Unknown command ${arg2}
