@@ -53,7 +53,7 @@ async function getSpawn(props: { command: string; args: string[]; options?: any 
     sh.stdout?.on('data', (data) => {
       const str = data.toString();
       if (!str.match(/\[nodemon\]/)) {
-        process.stdout.write(`\r\r${str}`);
+        console.log(`\r\r${str}`);
       }
     });
     sh.stderr?.on('data', (err) => {
@@ -162,17 +162,21 @@ build - build project
   let rootPath: string;
   let command = 'npm';
   let args: string[];
+  console.log(PWD);
   switch (arg2) {
     case 'build':
       args = ['run', 'build'];
       const buildRes = await getSpawn({
         command,
         args,
+        options: {
+          cwd: path.resolve(PWD, './node_modules/prisma-api/'),
+        },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
-      const spawnResStr = buildRes.toString();
-      if (spawnResStr.match(/TS5057/)) {
+      const spawnResStr = buildRes?.toString();
+      if (spawnResStr?.match(/TS5057/)) {
         utils.debugLog(new Error(spawnResStr), 'Try run command <prisma-api init>');
       }
       break;
@@ -200,7 +204,6 @@ build - build project
         args,
         options: { signal },
       }).catch((e) => {
-        console.log(1);
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
       break;
