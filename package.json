@@ -1,7 +1,7 @@
 {
   "name": "prisma-api",
   "version": "1.0.17",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "repository": "https://github.com/prisma-api/prisma-api",
   "maintainers": [
     "Sergey Kolmiller <uyem.ru@gmail.com>"
@@ -11,7 +11,7 @@
     "schema": "src/core/orm/schema.prisma"
   },
   "bin": {
-    "prisma-api": "./dist/src/bin/prisma-api.js"
+    "prisma-api": "./dist/bin/prisma-api.js"
   },
   "types": "index.d.ts",
   "engines": {
@@ -28,8 +28,8 @@
   "scripts": {
     "start": "node ${npm_package_main}",
     "watch": "tsc -p . -w",
-    "bins": "NPM_PACKAGE_VERSION=${npm_package_version} ./dist/src/bin/prisma-api.js",
-    "dev:dev": "NODE_ENV=development nodemon ${npm_package_main}",
+    "bins": "NPM_PACKAGE_VERSION=${npm_package_version} ./dist/bin/prisma-api.js",
+    "dev": "NODE_ENV=development nodemon ${npm_package_main}",
     "start:win": "set NODE_ENV=development && nodemon ${npm_package_main}",
     "dev:build": "tsc -p . && yarn script env",
     "migrate:dev": "yarn format && yarn generate && prisma migrate dev --preview-feature",
@@ -39,7 +39,7 @@
     "studio": "prisma studio",
     "generate": "prisma generate",
     "format": "prisma format",
-    "script": "node dist/src/scripts/index.js",
+    "script": "node dist/scripts/index.js",
     "headers": "NODE_ENV=production file-headers"
   },
   "devDependencies": {

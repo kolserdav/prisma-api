@@ -97,7 +97,7 @@ async function watchDir(dirPath: string): Promise<void> {
           if (event === 'change') {
             if (path.match(/\.ts$/)) {
               const resPath = transpileFile(path);
-              if (path.match(/\/src\/bin\/index.ts/)) {
+              if (path.match(/\/src\/bin\/prisma-api.ts/)) {
                 const i = import('../scripts/index');
                 i.then((d) => {
                   const { script } = d;
@@ -135,7 +135,12 @@ async function transpileFile(file: string) {
   const { outDir, rootDir } = compilerOptions;
   const startDate = new Date().getTime();
   const tsD = fs.readFileSync(path.resolve(__dirname, file)).toString();
-  const jsD = ts.transpileModule(tsD, tsconfig).outputText;
+  const jsO = ts.transpileModule(tsD, { compilerOptions, reportDiagnostics: true });
+  const jsD = jsO?.outputText;
+  const { diagnostics, sourceMapText } = jsO;
+  //@ts-ignore
+  const s = ts.getPreEmitDiagnostics(tsD);
+  console.log(s);
   let filePath = file;
   const relativePath = file.replace(PWD, '').replace(/^\/?/, '');
   if (rootDir === '.' || rootDir === './') {
