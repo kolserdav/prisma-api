@@ -164,31 +164,12 @@ build - build project
   let args: string[];
   let generateRes: any;
   let generateResStr: string;
-  console.log(2, PWD);
-  const cwd = path.resolve(PWD, './node_modules/prisma-api/');
   switch (arg2) {
-    case 'build':
-      args = ['run', 'generate'];
-      generateRes = await getSpawn({
-        command,
-        args,
-        options: {
-          cwd,
-        },
-      }).catch((e) => {
-        console.error(ERROR, `Error ${command} ${args.join(' ')}`);
-      });
-      generateResStr = generateRes?.toString();
-      if (generateResStr?.match(/TS5057/)) {
-        utils.debugLog(new Error(generateResStr), 'Try run command <prisma-api init>');
-      }
-      args = ['run', 'build'];
+    case 'devbuild':
+      args = ['run', 'dev:build'];
       const buildRes = await getSpawn({
         command,
         args,
-        options: {
-          cwd,
-        },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
@@ -206,7 +187,7 @@ build - build project
     case '--version':
       console.info(version);
       break;
-    case 'dev':
+    case 'devdev':
       const srcDir = path.resolve(PWD, rootDir || '.');
       if (watcher !== null) {
         closeWatch();
@@ -216,9 +197,6 @@ build - build project
       generateRes = await getSpawn({
         command,
         args,
-        options: {
-          cwd,
-        },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
@@ -226,21 +204,24 @@ build - build project
       if (generateResStr?.match(/TS5057/)) {
         utils.debugLog(new Error(generateResStr), 'Try run command <prisma-api init>');
       }
-      args = ['run', 'dev'];
-      const spawnRes = getSpawn({
+      const packageJson: any = await import(path.resolve(PWD, 'package.json'));
+      const { prisma } = packageJson;
+      if (!prisma) {
+        console.error(ERROR, Red, 'prisma.schema directive is not found in package.json', Reset);
+        process.exit(1);
+      }
+      const prismaSchema = fs.readFileSync(path.resolve(PWD, prisma.schema))?.toString();
+      args = ['run', 'dev:dev'];
+      const spawnRes = await getSpawn({
         command,
         args,
         options: {
           signal,
-          cwd,
-          env: { DATABASE_URL: 'mysql://arch:1234@127.0.0.1:3306/boring_weekend' },
         },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
-      spawnRes.then((data) => {
-        console.log(32, data);
-      });
+      console.log(32, spawnRes);
       break;
     default:
       console.info(`
