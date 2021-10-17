@@ -160,25 +160,39 @@ COMMANDS
 build - build project 
   `;
   let rootPath: string;
-  let command = 'npm';
+  let command = /^win/.test(process.platform) ? 'npm.cmd' : 'npm';
   let args: string[];
-  console.log(PWD);
+  let generateRes: any;
+  let generateResStr: string;
+  console.log(2, PWD);
+  const cwd = path.resolve(PWD, './node_modules/prisma-api/');
   switch (arg2) {
     case 'build':
+      args = ['run', 'generate'];
+      generateRes = await getSpawn({
+        command,
+        args,
+        options: {
+          cwd,
+        },
+      }).catch((e) => {
+        console.error(ERROR, `Error ${command} ${args.join(' ')}`);
+      });
+      generateResStr = generateRes?.toString();
+      if (generateResStr?.match(/TS5057/)) {
+        utils.debugLog(new Error(generateResStr), 'Try run command <prisma-api init>');
+      }
       args = ['run', 'build'];
       const buildRes = await getSpawn({
         command,
         args,
         options: {
-          cwd: path.resolve(PWD, './node_modules/prisma-api/'),
+          cwd,
         },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
       const spawnResStr = buildRes?.toString();
-      if (spawnResStr?.match(/TS5057/)) {
-        utils.debugLog(new Error(spawnResStr), 'Try run command <prisma-api init>');
-      }
       break;
     case '-h':
       console.info(help);
@@ -198,13 +212,34 @@ build - build project
         closeWatch();
       }
       watchDir(srcDir);
+      args = ['run', 'generate'];
+      generateRes = await getSpawn({
+        command,
+        args,
+        options: {
+          cwd,
+        },
+      }).catch((e) => {
+        console.error(ERROR, `Error ${command} ${args.join(' ')}`);
+      });
+      generateResStr = generateRes?.toString();
+      if (generateResStr?.match(/TS5057/)) {
+        utils.debugLog(new Error(generateResStr), 'Try run command <prisma-api init>');
+      }
       args = ['run', 'dev'];
       const spawnRes = getSpawn({
         command,
         args,
-        options: { signal },
+        options: {
+          signal,
+          cwd,
+          env: { DATABASE_URL: 'mysql://arch:1234@127.0.0.1:3306/boring_weekend' },
+        },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
+      });
+      spawnRes.then((data) => {
+        console.log(32, data);
       });
       break;
     default:
