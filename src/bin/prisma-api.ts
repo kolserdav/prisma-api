@@ -64,8 +64,9 @@ async function getSpawn(props: { command: string; args: string[]; options?: any 
 }
 
 async function getTSOptions(): Promise<ts.TranspileOptions> {
-  console.log(__dirname);
-  const _tsConfigAny: any = await import('../../tsconfig.json');
+  const reg = prod ? /\/node_modules\// : /\/prisma-api-subject\/?/;
+  const tsPath = PWD.match(reg) ? `${PWD}/tsconfig.json` : '../../tsconfig.json';
+  const _tsConfigAny: any = await import(tsPath);
   const tsconfig: ts.TranspileOptions = _tsConfigAny;
   return tsconfig;
 }
@@ -145,14 +146,17 @@ async function transpileFile(file: string) {
     console.warn(WARNING, 'Missing rootDir compiler option in tsconfig.json');
   }
   filePath = filePath.replace(/\.ts$/, '.js');
+  let _error = false;
   try {
     fs.writeFileSync(filePath, jsD);
   } catch (e) {
     console.error(ERROR, `Error write dist file by path ${filePath}`);
+    _error = true;
   }
   const finDate = new Date().getTime();
-  process.stdout.write('\r\r');
-  console.log(`Compile file ${filePath} done in ${finDate - startDate} ms.`);
+  if (!_error) {
+    console.log(`Compile file ${filePath} done in ${finDate - startDate} ms.`);
+  }
   return filePath;
 }
 
@@ -173,11 +177,8 @@ async function transpileFile(file: string) {
 COMMANDS
 build - build project 
   `;
-  let rootPath: string;
   let command = /^win/.test(process.platform) ? 'npm.cmd' : 'npm';
   let args: string[];
-  let generateRes: any;
-  let generateResStr: string;
   const cwd = PWD;
   switch (arg2) {
     case 'build':
@@ -204,7 +205,6 @@ build - build project
       console.info(version);
       break;
     case 'dev':
-      console.log(1, cwd);
       const srcDir = path.resolve(PWD, rootDir || '.');
       if (watcher !== null) {
         closeWatch();
@@ -228,7 +228,7 @@ build - build project
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
-      console.log(32, spawnRes);
+      console.info(`Dev server existed with code ${spawnRes}`);
       break;
     default:
       console.info(`
