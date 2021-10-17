@@ -11,7 +11,7 @@
     "schema": "src/core/orm/schema.prisma"
   },
   "bin": {
-    "prisma-api": "NPM_PACKAGE_VERSION=${npm_package_version} ./dist/src/bin/prisma-api.js"
+    "prisma-api": "./dist/src/bin/prisma-api.js"
   },
   "types": "index.d.ts",
   "engines": {
