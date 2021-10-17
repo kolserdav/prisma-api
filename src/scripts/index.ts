@@ -24,6 +24,6 @@ export function script(arg1: string, filePath: string) {
   }
 }
 
-const filePath = path.resolve(__dirname, '../bin/index.js');
+const filePath = path.resolve(__dirname, '../bin/prisma-api.js');
 
 script(process.argv[2], filePath);
