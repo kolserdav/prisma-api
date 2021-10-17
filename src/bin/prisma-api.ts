@@ -84,7 +84,7 @@ function watchDir(dirPath: string): Promise<void> {
   return new Promise(() => {
     watcher = chokidar
       .watch(dirPath, {
-        ignored: [/node_modules/, new RegExp(`${outDir}`, '.git')],
+        ignored: [/node_modules/, new RegExp(`${outDir}`), '.git'],
         persistent: true,
       })
       .on('all', (event, path) => {
