@@ -14,14 +14,32 @@
 
 import path from 'path';
 import childProcess from 'child_process';
+import chokidar from 'chokidar';
+import ts from 'typescript';
+import _tsconfig from '../../tsconfig.json';
 import fs from 'fs';
 import * as utils from '../core/utils';
 
 const { spawn } = childProcess;
 
 const { WARNING, ERROR } = utils;
-const { NODE_ENV } = process.env;
+const { NODE_ENV, NPM_PACKAGE_VERSION, PWD }: any = process.env;
 const prod = NODE_ENV === 'production';
+const _tsConfigAny: any = _tsconfig;
+const tsconfig: ts.TranspileOptions = _tsConfigAny;
+let { compilerOptions } = tsconfig;
+compilerOptions = compilerOptions || {};
+const { outDir, rootDir } = compilerOptions;
+const controller = new AbortController();
+const { signal } = controller;
+/**
+ * Цвета текста в консоли
+ */
+const Red = '\x1b[31m';
+const Reset = '\x1b[0m';
+const Bright = '\x1b[1m';
+const Yellow = '\x1b[33m';
+const Dim = '\x1b[2m';
 
 /**
  *
@@ -31,19 +49,17 @@ const prod = NODE_ENV === 'production';
 async function getSpawn(props: { command: string; args: string[]; options?: any }): Promise<any> {
   const { command, args, options } = props;
   return await new Promise((resolve, reject) => {
-    const sh = spawn.call(
-      'sh',
-      command,
-      args.filter((item, index) => index !== 0),
-      options || {}
-    );
+    const sh = spawn.call('sh', command, args, options || {});
     sh.stdout?.on('data', (data) => {
       const str = data.toString();
-      console.log(str);
+      if (!str.match(/\[nodemon\]/)) {
+        process.stdout.write(`\r\r${str}`);
+      }
     });
     sh.stderr?.on('data', (err) => {
-      console.warn(WARNING, err.message);
-      reject(err.toString());
+      const str = err.toString();
+      console.warn(ERROR, Red, str, Reset);
+      reject(str);
     });
     sh.on('close', (code) => {
       resolve(code);
@@ -53,48 +69,140 @@ async function getSpawn(props: { command: string; args: string[]; options?: any 
   });
 }
 
+/**
+ * Глобальный просушиватель папок
+ * по умолчанию null
+ */
+let watcher: chokidar.FSWatcher | null = null;
+
+/**
+ * Функция навешивающая прослушиватель на файлы
+ * @param dirPath
+ * @returns
+ */
+function watchDir(dirPath: string): Promise<void> {
+  return new Promise(() => {
+    watcher = chokidar
+      .watch(dirPath, {
+        ignored: [/node_modules/, new RegExp(`${outDir}`)],
+        persistent: true,
+      })
+      .on('all', (event, path) => {
+        if (event !== 'add' && event !== 'addDir') {
+          if (event === 'change') {
+            if (path.match(/\.ts$/)) {
+              const resPath = transpileFile(path);
+              if (path.match(/\/src\/bin\/index.ts/)) {
+                const i = import('../scripts/index');
+                i.then((d) => {
+                  const { script } = d;
+                  script('env', resPath);
+                  controller.abort();
+                  process.exit(2);
+                });
+              }
+            }
+          } else {
+            console.info(event, path);
+          }
+        }
+      });
+  });
+}
+
+/**
+ * Закрыть прослушиватель изменения файлов
+ */
+function closeWatch() {
+  watcher?.close().then(() => {});
+}
+
+/**
+ * Транспиляция типскриптом изменившегося файла
+ * @param file
+ */
+function transpileFile(file: string) {
+  const startDate = new Date().getTime();
+  const tsD = fs.readFileSync(path.resolve(__dirname, file)).toString();
+  const jsD = ts.transpileModule(tsD, tsconfig).outputText;
+  let filePath = file;
+  const relativePath = file.replace(PWD, '').replace(/^\/?/, '');
+  if (rootDir === '.' || rootDir === './') {
+    filePath = path.resolve(PWD, outDir?.replace(/^\.\//, '') || 'dist', relativePath);
+  } else if (rootDir !== undefined) {
+    filePath = path.resolve(PWD, relativePath);
+  } else {
+    console.warn(WARNING, 'Missing rootDir compiler option in tsconfig.json');
+  }
+  filePath = filePath.replace(/\.ts$/, '.js');
+  try {
+    fs.writeFileSync(filePath, jsD);
+  } catch (e) {
+    console.error(ERROR, `Error write dist file by path ${filePath}`);
+  }
+  const finDate = new Date().getTime();
+  process.stdout.write('\r\r');
+  console.log(`Compile file ${filePath} done in ${finDate - startDate} ms.`);
+  return filePath;
+}
+
 (async () => {
   /**
    * Переключатель по третьему параметру команды
    */
   const arg0 = process.argv[0];
   const arg2 = process.argv[2];
-  const version = `Prisma Api version ${process.env.npm_package_version}`;
+  const version = `Prisma Api version ${NPM_PACKAGE_VERSION}`;
   const help = `
     ${version}
-> prisma-api [options] <command>    
+> prisma-api [options] <command>     
 COMMANDS
 build - build project 
   `;
   let rootPath: string;
+  let command = 'npm';
+  let args: string[];
   switch (arg2) {
     case 'build':
-      rootPath = path.relative('prisma-api', arg0);
+      args = ['run', 'build'];
       const buildRes = await getSpawn({
-        command: 'npm',
-        args: ['run', 'build'],
+        command,
+        args,
       }).catch((e) => {
-        console.error(ERROR, e);
+        console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
       const spawnResStr = buildRes.toString();
       if (spawnResStr.match(/TS5057/)) {
         utils.debugLog(new Error(spawnResStr), 'Try run command <prisma-api init>');
       }
       break;
-    case '-h' || '--help':
+    case '-h':
       console.info(help);
       break;
-    case '-v' || '--version':
+    case '--help':
+      console.info(help);
+      break;
+    case '-v':
       console.info(version);
       break;
-    case 'start':
-      const spawnRes = await getSpawn({
-        command: 'npm',
-        args: ['run', 'start'],
+    case '--version':
+      console.info(version);
+      break;
+    case 'dev':
+      const srcDir = path.resolve(PWD, rootDir || '.');
+      if (watcher !== null) {
+        closeWatch();
+      }
+      watchDir(srcDir);
+      args = ['run', 'dev'];
+      const spawnRes = getSpawn({
+        command,
+        args,
+        options: { signal },
       }).catch((e) => {
-        console.error(ERROR, e);
+        console.log(1);
+        console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
-      console.log(spawnRes);
       break;
     default:
       console.info(`

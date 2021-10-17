@@ -4,15 +4,16 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "allowJs": true,
-    "outDir": "./dist",
+    "outDir": "dist",
     "removeComments": true,
     "strict": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
   },
-  "exclude": ["app", "dist", "rollup.config.**"],
+  "exclude": ["app", "dist"],
   "compileOnSave": true
 }
