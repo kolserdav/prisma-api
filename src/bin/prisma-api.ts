@@ -164,12 +164,14 @@ build - build project
   let args: string[];
   let generateRes: any;
   let generateResStr: string;
+  const cwd = path.resolve(PWD, './node_modules/prisma-api/');
   switch (arg2) {
     case 'devbuild':
       args = ['run', 'dev:build'];
       const buildRes = await getSpawn({
         command,
         args,
+        options: { cwd },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
@@ -197,6 +199,7 @@ build - build project
       generateRes = await getSpawn({
         command,
         args,
+        options: { cwd },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);
       });
@@ -217,6 +220,8 @@ build - build project
         args,
         options: {
           signal,
+          cwd,
+          env: { DATABASE_URL: 'mysql://arch:1234@127.0.0.1:3306/boring_weekend', PWD },
         },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);

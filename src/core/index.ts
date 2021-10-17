@@ -12,8 +12,6 @@
  */
 import express from 'express';
 import cors from 'cors';
-import * as api from './api';
-import * as middleware from './middleware';
 import * as utils from './utils';
 
 const server = express();
@@ -29,8 +27,6 @@ process.on('unhandledRejection', (reason: Error, promise) => {
 });
 
 server.use(express.json({ limit: '5mb' }));
-// Глобальный языковой посредник
-server.use(middleware.getLang);
 
 export default {
   server: (args: any) => {
