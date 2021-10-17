@@ -12,8 +12,6 @@
  */
 import express from 'express';
 import cors from 'cors';
-import * as api from './api';
-import * as middleware from './middleware';
 import * as utils from './utils';
 
 const server = express();
@@ -29,14 +27,6 @@ process.on('unhandledRejection', (reason: Error, promise) => {
 });
 
 server.use(express.json({ limit: '5mb' }));
-// Глобальный языковой посредник
-server.use(middleware.getLang);
-
-//// Временные апи пока нет страниц
-// страница при переходе по ссылке подтверждения почты
-server.get('/confirm', api.user.update.middleware, api.user.update.handler);
-// страницы при переходе по ссылке получения ключа для смены пароля
-server.get('/forgot', api.user.update.middleware, api.user.update.handler);
 
 export default {
   server: (args: any) => {
