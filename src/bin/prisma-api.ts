@@ -16,7 +16,6 @@ import path from 'path';
 import childProcess from 'child_process';
 import chokidar from 'chokidar';
 import ts from 'typescript';
-import _tsconfig from '../../tsconfig.json';
 import fs from 'fs';
 import * as utils from '../core/utils';
 
@@ -25,11 +24,6 @@ const { spawn } = childProcess;
 const { WARNING, ERROR } = utils;
 const { NODE_ENV, NPM_PACKAGE_VERSION, PWD }: any = process.env;
 const prod = NODE_ENV === 'production';
-const _tsConfigAny: any = _tsconfig;
-const tsconfig: ts.TranspileOptions = _tsConfigAny;
-let { compilerOptions } = tsconfig;
-compilerOptions = compilerOptions || {};
-const { outDir, rootDir } = compilerOptions;
 const controller = new AbortController();
 const { signal } = controller;
 /**
@@ -69,6 +63,13 @@ async function getSpawn(props: { command: string; args: string[]; options?: any 
   });
 }
 
+async function getTSOptions(): Promise<ts.TranspileOptions> {
+  console.log(__dirname);
+  const _tsConfigAny: any = await import('../../tsconfig.json');
+  const tsconfig: ts.TranspileOptions = _tsConfigAny;
+  return tsconfig;
+}
+
 /**
  * Глобальный просушиватель папок
  * по умолчанию null
@@ -80,8 +81,11 @@ let watcher: chokidar.FSWatcher | null = null;
  * @param dirPath
  * @returns
  */
-function watchDir(dirPath: string): Promise<void> {
-  return new Promise(() => {
+async function watchDir(dirPath: string): Promise<void> {
+  let { compilerOptions } = await getTSOptions();
+  compilerOptions = compilerOptions || {};
+  const { outDir } = compilerOptions;
+  return await new Promise(() => {
     watcher = chokidar
       .watch(dirPath, {
         ignored: [/node_modules/, new RegExp(`${outDir}`), '.git'],
@@ -96,9 +100,11 @@ function watchDir(dirPath: string): Promise<void> {
                 const i = import('../scripts/index');
                 i.then((d) => {
                   const { script } = d;
-                  script('env', resPath);
-                  controller.abort();
-                  process.exit(2);
+                  resPath.then((rPath) => {
+                    script('env', rPath);
+                    controller.abort();
+                    process.exit(2);
+                  });
                 });
               }
             }
@@ -121,7 +127,11 @@ function closeWatch() {
  * Транспиляция типскриптом изменившегося файла
  * @param file
  */
-function transpileFile(file: string) {
+async function transpileFile(file: string) {
+  const tsconfig = await getTSOptions();
+  let { compilerOptions } = tsconfig;
+  compilerOptions = compilerOptions || {};
+  const { outDir, rootDir } = compilerOptions;
   const startDate = new Date().getTime();
   const tsD = fs.readFileSync(path.resolve(__dirname, file)).toString();
   const jsD = ts.transpileModule(tsD, tsconfig).outputText;
@@ -130,7 +140,7 @@ function transpileFile(file: string) {
   if (rootDir === '.' || rootDir === './') {
     filePath = path.resolve(PWD, outDir?.replace(/^\.\//, '') || 'dist', relativePath);
   } else if (rootDir !== undefined) {
-    filePath = path.resolve(PWD, relativePath);
+    filePath = filePath.replace(rootDir, outDir || 'dist');
   } else {
     console.warn(WARNING, 'Missing rootDir compiler option in tsconfig.json');
   }
@@ -147,6 +157,10 @@ function transpileFile(file: string) {
 }
 
 (async () => {
+  const tsconfig = await getTSOptions();
+  let { compilerOptions } = tsconfig;
+  compilerOptions = compilerOptions || {};
+  const { rootDir } = compilerOptions;
   /**
    * Переключатель по третьему параметру команды
    */
@@ -164,10 +178,10 @@ build - build project
   let args: string[];
   let generateRes: any;
   let generateResStr: string;
-  const cwd = path.resolve(PWD, './node_modules/prisma-api/');
+  const cwd = PWD;
   switch (arg2) {
-    case 'devbuild':
-      args = ['run', 'dev:build'];
+    case 'build':
+      args = ['run', 'build'];
       const buildRes = await getSpawn({
         command,
         args,
@@ -189,24 +203,13 @@ build - build project
     case '--version':
       console.info(version);
       break;
-    case 'devdev':
+    case 'dev':
+      console.log(1, cwd);
       const srcDir = path.resolve(PWD, rootDir || '.');
       if (watcher !== null) {
         closeWatch();
       }
       watchDir(srcDir);
-      args = ['run', 'generate'];
-      generateRes = await getSpawn({
-        command,
-        args,
-        options: { cwd },
-      }).catch((e) => {
-        console.error(ERROR, `Error ${command} ${args.join(' ')}`);
-      });
-      generateResStr = generateRes?.toString();
-      if (generateResStr?.match(/TS5057/)) {
-        utils.debugLog(new Error(generateResStr), 'Try run command <prisma-api init>');
-      }
       const packageJson: any = await import(path.resolve(PWD, 'package.json'));
       const { prisma } = packageJson;
       if (!prisma) {
@@ -214,14 +217,13 @@ build - build project
         process.exit(1);
       }
       const prismaSchema = fs.readFileSync(path.resolve(PWD, prisma.schema))?.toString();
-      args = ['run', 'dev:dev'];
+      args = ['run', 'dev'];
       const spawnRes = await getSpawn({
         command,
         args,
         options: {
           signal,
           cwd,
-          env: { DATABASE_URL: 'mysql://arch:1234@127.0.0.1:3306/boring_weekend', PWD },
         },
       }).catch((e) => {
         console.error(ERROR, `Error ${command} ${args.join(' ')}`);

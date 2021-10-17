@@ -13,19 +13,19 @@
  * своего сервера
  */
 import dotenv from 'dotenv';
+import express from 'express';
 dotenv.config();
-import type { PrismaApiTypes } from '../index';
+
 import server from './workers/server';
 
-export default function prismaApi(args: PrismaApiTypes.PrismaApiArgs) {
-  return server(args);
+export namespace PrismaApiTypes {
+  export interface PrismaApiArgs {
+    cors?: string; // defaul: '*'
+    maxBodySize?: string; // default: '5mb'
+    i18n?: string; // default: 'core/locales'
+  }
 }
 
-const app = server({ maxBodySize: '10mb' });
-app.get('/', (req, res) => {
-  console.log(1);
-  return res.status(200).json({ s: '1' });
-});
-app.listen(3000, () => {
-  console.log('listen', 3000);
-});
+export default function prismaApi(args: PrismaApiTypes.PrismaApiArgs): express.Application {
+  return server(args);
+}

@@ -19,4 +19,3 @@ export namespace PrismaApiTypes {
     i18n?: string; // default: 'core/locales'
   }
 }
-export default function prismaApi(args: PrismaApiTypes.PrismaApiArgs);
