@@ -86,22 +86,35 @@ async function compileFile(file: string): Promise<{
   const realHost = ts.createCompilerHost(compilerOptions, true);
   const filePath = path.resolve(__dirname, file);
   const tsD = fs.readFileSync(filePath).toString();
+  const dummyFilePath = '/in-memory-file.ts';
   const dummySourceFile = ts.createSourceFile(filePath, tsD, ts.ScriptTarget.Latest);
   let outputCode: string | undefined = undefined;
+  console.log(realHost.directoryExists && realHost.directoryExists.bind(realHost));
+  const origFileCache = new Map<string, ts.SourceFile>(newFileCache);
   const formatHost: ts.CompilerHost = {
-    directoryExists: realHost.directoryExists && realHost.directoryExists.bind(realHost),
+    fileExists: (filePath) => filePath === dummyFilePath || realHost.fileExists(filePath),
+    directoryExists: (dirpath: string) => {
+      let exists = realHost.directoryExists!(dirpath);
+      if (!exists) {
+        exists = ![...origFileCache.keys()].every((fp) => {
+          return !path.dirname(fp).startsWith(dirpath);
+        });
+        if (exists) console.log(`directoryExists(${dirpath})= false=>${exists}`);
+      }
+      return exists;
+    },
     getCurrentDirectory: realHost.getCurrentDirectory.bind(realHost),
+    getDirectories: realHost?.getDirectories?.bind(realHost),
     getCanonicalFileName: (fileName) => realHost.getCanonicalFileName(fileName),
     getNewLine: realHost.getNewLine.bind(realHost),
     getDefaultLibFileName: realHost.getDefaultLibFileName.bind(realHost),
     getSourceFile: (fileName, languageVersion, onError, shouldCreateNewSourceFile) =>
-      fileName === filePath
+      fileName === dummyFilePath
         ? dummySourceFile
         : realHost.getSourceFile(fileName, languageVersion, onError, shouldCreateNewSourceFile),
+    readFile: (filePath) => (filePath === dummyFilePath ? tsD : realHost.readFile(filePath)),
     useCaseSensitiveFileNames: () => realHost.useCaseSensitiveFileNames(),
     writeFile: (fileName, data) => (outputCode = data),
-    fileExists: (filePath) => filePath === filePath || realHost.fileExists(filePath),
-    readFile: (filePath) => tsD,
   };
   const configPath = ts.findConfigFile(path.resolve(tsPath), ts.sys.fileExists, 'tsconfig.json');
   if (!configPath) {
@@ -113,7 +126,6 @@ async function compileFile(file: string): Promise<{
   }
   const jsonConfig = readConfigFileResult.config;
   const { rootPath } = jsonConfig;
-  console.log(rootPath);
   const convertResult = ts.convertCompilerOptionsFromJson(jsonConfig, './');
   if (convertResult.errors && convertResult.errors.length > 0) {
     throw new Error(ts.formatDiagnostics(convertResult.errors, formatHost));

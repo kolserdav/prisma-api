@@ -15,7 +15,6 @@ export function script(arg1: string, filePath: string) {
   switch (arg1) {
     case 'env':
       data = fs.readFileSync(filePath).toString();
-      console.log(data);
       data = data.match(/\/usr\/bin\/env/) ? data : '#!/usr/bin/env node\n' + data;
       fs.writeFileSync(filePath, data);
       fs.chmodSync(filePath, '755');
@@ -27,4 +26,4 @@ export function script(arg1: string, filePath: string) {
 
 const filePath = path.resolve(__dirname, '../bin/prisma-api.js');
 
-script(process.argv[2], filePath);
+// script(process.argv[2], filePath);
