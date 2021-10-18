@@ -15,7 +15,8 @@ export function script(arg1: string, filePath: string) {
   switch (arg1) {
     case 'env':
       data = fs.readFileSync(filePath).toString();
-      data = '#!/usr/bin/env node\n' + data;
+      console.log(data);
+      data = data.match(/\/usr\/bin\/env/) ? data : '#!/usr/bin/env node\n' + data;
       fs.writeFileSync(filePath, data);
       fs.chmodSync(filePath, '755');
       console.info(`Set up env for file ${filePath}`);

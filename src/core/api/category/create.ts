@@ -14,7 +14,7 @@ import * as utils from '../../utils';
 const prisma = new PrismaClient();
 
 /**
- * создание одной категории /api/v1/category/create .
+ * создание одной категории /api/v1/category/create  .
  * @param {{args: Prisma.CategoryCreateArgs}}
  * @returns {Category | null}
  */
@@ -25,7 +25,6 @@ interface Args extends Types.GlobalParams {
     password: string;
   };
 }
-
 const middleware: Types.NextHandler<any, Args, any> = async (req, res, next) => {
   const { body } = req;
   const { args, lang } = body;
@@ -34,6 +33,7 @@ const middleware: Types.NextHandler<any, Args, any> = async (req, res, next) => 
   const _data = data || {};
   const { title } = _data;
   let oldCategory;
+  ``;
   try {
     oldCategory = await prisma.category.findFirst({
       where: {
