@@ -26,6 +26,7 @@ const { NODE_ENV, NPM_PACKAGE_VERSION, PWD }: any = process.env;
 const prod = NODE_ENV === 'production';
 const controller = new AbortController();
 const { signal } = controller;
+let tsconfig: ts.TranspileOptions;
 /**
  * Цвета текста в консоли
  */
@@ -63,12 +64,93 @@ async function getSpawn(props: { command: string; args: string[]; options?: any 
   });
 }
 
-async function getTSOptions(): Promise<ts.TranspileOptions> {
+async function getTSOptions(): Promise<{ tsconfig: ts.TranspileOptions; tsPath: string }> {
   const reg = prod ? /\/node_modules\// : /\/prisma-api-subject\/?/;
-  const tsPath = PWD.match(reg) ? `${PWD}/tsconfig.json` : '../../tsconfig.json';
+  const tsPath = PWD.match(reg)
+    ? `${PWD}/tsconfig.json`
+    : path.resolve(__dirname, '../../tsconfig.json');
   const _tsConfigAny: any = await import(tsPath);
-  const tsconfig: ts.TranspileOptions = _tsConfigAny;
-  return tsconfig;
+  tsconfig = _tsConfigAny;
+  return { tsconfig, tsPath };
+}
+
+async function compileFile(file: string): Promise<{
+  compilerOptions: ts.CompilerOptions;
+  tsconfig: ts.TranspileOptions;
+}> {
+  const { tsconfig, tsPath } = await getTSOptions();
+  let { compilerOptions } = tsconfig;
+  if (!compilerOptions) {
+    throw new Error('Error get compilseOptions');
+  }
+  const realHost = ts.createCompilerHost(compilerOptions, true);
+  const filePath = path.resolve(__dirname, file);
+  const tsD = fs.readFileSync(filePath).toString();
+  const dummyFilePath = '/in-memory-file.ts';
+  const dummySourceFile = ts.createSourceFile(filePath, tsD, ts.ScriptTarget.Latest);
+  let outputCode: string | undefined = undefined;
+  console.log(realHost.directoryExists && realHost.directoryExists.bind(realHost));
+  const origFileCache = new Map<string, ts.SourceFile>(newFileCache);
+  const formatHost: ts.CompilerHost = {
+    fileExists: (filePath) => filePath === dummyFilePath || realHost.fileExists(filePath),
+    directoryExists: (dirpath: string) => {
+      let exists = realHost.directoryExists!(dirpath);
+      if (!exists) {
+        exists = ![...origFileCache.keys()].every((fp) => {
+          return !path.dirname(fp).startsWith(dirpath);
+        });
+        if (exists) console.log(`directoryExists(${dirpath})= false=>${exists}`);
+      }
+      return exists;
+    },
+    getCurrentDirectory: realHost.getCurrentDirectory.bind(realHost),
+    getDirectories: realHost?.getDirectories?.bind(realHost),
+    getCanonicalFileName: (fileName) => realHost.getCanonicalFileName(fileName),
+    getNewLine: realHost.getNewLine.bind(realHost),
+    getDefaultLibFileName: realHost.getDefaultLibFileName.bind(realHost),
+    getSourceFile: (fileName, languageVersion, onError, shouldCreateNewSourceFile) =>
+      fileName === dummyFilePath
+        ? dummySourceFile
+        : realHost.getSourceFile(fileName, languageVersion, onError, shouldCreateNewSourceFile),
+    readFile: (filePath) => (filePath === dummyFilePath ? tsD : realHost.readFile(filePath)),
+    useCaseSensitiveFileNames: () => realHost.useCaseSensitiveFileNames(),
+    writeFile: (fileName, data) => (outputCode = data),
+  };
+  const configPath = ts.findConfigFile(path.resolve(tsPath), ts.sys.fileExists, 'tsconfig.json');
+  if (!configPath) {
+    throw new Error('Cant read tsconfig.json file');
+  }
+  const readConfigFileResult = ts.readConfigFile(configPath, ts.sys.readFile);
+  if (readConfigFileResult.error) {
+    throw new Error(ts.formatDiagnostic(readConfigFileResult.error, formatHost));
+  }
+  const jsonConfig = readConfigFileResult.config;
+  const { rootPath } = jsonConfig;
+  const convertResult = ts.convertCompilerOptionsFromJson(jsonConfig, './');
+  if (convertResult.errors && convertResult.errors.length > 0) {
+    throw new Error(ts.formatDiagnostics(convertResult.errors, formatHost));
+  }
+  const libs = [
+    'es5',
+    'es6',
+    'es2015',
+    'es2016',
+    'es2017',
+    'es2018',
+    'es2019',
+    'es2020',
+    'es2021',
+    'esnext',
+  ];
+  const rootNames = libs.map((lib) => require.resolve(`typescript/lib/lib.${lib}.d.ts`));
+  const program = ts.createProgram(rootNames.concat([filePath]), jsonConfig, formatHost);
+  console.log(
+    ts.formatDiagnosticsWithColorAndContext(ts.getPreEmitDiagnostics(program), formatHost)
+  );
+  const emitResult = program.emit();
+  //console.log(diagnostics);
+  compilerOptions = convertResult.options;
+  return { compilerOptions, tsconfig };
 }
 
 /**
@@ -83,7 +165,8 @@ let watcher: chokidar.FSWatcher | null = null;
  * @returns
  */
 async function watchDir(dirPath: string): Promise<void> {
-  let { compilerOptions } = await getTSOptions();
+  tsconfig = tsconfig || (await (await getTSOptions()).tsconfig);
+  let { compilerOptions } = tsconfig;
   compilerOptions = compilerOptions || {};
   const { outDir } = compilerOptions;
   return await new Promise(() => {
@@ -96,13 +179,13 @@ async function watchDir(dirPath: string): Promise<void> {
         if (event !== 'add' && event !== 'addDir') {
           if (event === 'change') {
             if (path.match(/\.ts$/)) {
-              const resPath = transpileFile(path);
+              const resPath = compileFile(path);
               if (path.match(/\/src\/bin\/prisma-api.ts/)) {
                 const i = import('../scripts/index');
                 i.then((d) => {
                   const { script } = d;
                   resPath.then((rPath) => {
-                    script('env', rPath);
+                    script('env', typeof rPath === 'string' ? rPath : '');
                     controller.abort();
                     process.exit(2);
                   });
@@ -124,49 +207,11 @@ function closeWatch() {
   watcher?.close().then(() => {});
 }
 
-/**
- * Транспиляция типскриптом изменившегося файла
- * @param file
- */
-async function transpileFile(file: string) {
-  const tsconfig = await getTSOptions();
-  let { compilerOptions } = tsconfig;
-  compilerOptions = compilerOptions || {};
-  const { outDir, rootDir } = compilerOptions;
-  const startDate = new Date().getTime();
-  const tsD = fs.readFileSync(path.resolve(__dirname, file)).toString();
-  const jsO = ts.transpileModule(tsD, { compilerOptions, reportDiagnostics: true });
-  const jsD = jsO?.outputText;
-  const { diagnostics, sourceMapText } = jsO;
-  //@ts-ignore
-  const s = ts.getPreEmitDiagnostics(tsD);
-  console.log(s);
-  let filePath = file;
-  const relativePath = file.replace(PWD, '').replace(/^\/?/, '');
-  if (rootDir === '.' || rootDir === './') {
-    filePath = path.resolve(PWD, outDir?.replace(/^\.\//, '') || 'dist', relativePath);
-  } else if (rootDir !== undefined) {
-    filePath = filePath.replace(rootDir, outDir || 'dist');
-  } else {
-    console.warn(WARNING, 'Missing rootDir compiler option in tsconfig.json');
-  }
-  filePath = filePath.replace(/\.ts$/, '.js');
-  let _error = false;
-  try {
-    fs.writeFileSync(filePath, jsD);
-  } catch (e) {
-    console.error(ERROR, `Error write dist file by path ${filePath}`);
-    _error = true;
-  }
-  const finDate = new Date().getTime();
-  if (!_error) {
-    console.log(`Compile file ${filePath} done in ${finDate - startDate} ms.`);
-  }
-  return filePath;
-}
-
 (async () => {
-  const tsconfig = await getTSOptions();
+  //@ts-ignore
+  if (typeof tsconfig === 'undefined') {
+    tsconfig = await (await getTSOptions()).tsconfig;
+  }
   let { compilerOptions } = tsconfig;
   compilerOptions = compilerOptions || {};
   const { rootDir } = compilerOptions;
