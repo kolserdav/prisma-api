@@ -320,6 +320,7 @@ export class Email {
   private emailObject: EmailLanguageObject;
 
   constructor() {
+    // TODO
     this.transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: parseInt(SMTP_PORT, 10),
