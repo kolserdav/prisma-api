@@ -1,17 +1,3 @@
-/******************************************************************************************
- * Repository: https://github.com/prisma-api/prisma-api
- * Author: Prisma Api Community
- * Email: <prisma.api.community@gmail.com>
- * License: MIT
- * License Text: THE SOFTWARE IS PROVIDED 'AS IS'
- * Copyright: prisma-api (c), All rights reserved
- * Create date: Thu Oct 14 2021 17:46:52 GMT+0700 (Krasnoyarsk Standard Time)
- ******************************************************************************************/
-/* eslint-disable no-case-declarations */
-/**
- * Файл скриптов для помощи в разработке
- */
-
 import path from 'path';
 import childProcess from 'child_process';
 import chokidar from 'chokidar';
@@ -90,19 +76,8 @@ async function compileFile(file: string): Promise<{
   const dummySourceFile = ts.createSourceFile(filePath, tsD, ts.ScriptTarget.Latest);
   let outputCode: string | undefined = undefined;
   console.log(realHost.directoryExists && realHost.directoryExists.bind(realHost));
-  const origFileCache = new Map<string, ts.SourceFile>(newFileCache);
   const formatHost: ts.CompilerHost = {
     fileExists: (filePath) => filePath === dummyFilePath || realHost.fileExists(filePath),
-    directoryExists: (dirpath: string) => {
-      let exists = realHost.directoryExists!(dirpath);
-      if (!exists) {
-        exists = ![...origFileCache.keys()].every((fp) => {
-          return !path.dirname(fp).startsWith(dirpath);
-        });
-        if (exists) console.log(`directoryExists(${dirpath})= false=>${exists}`);
-      }
-      return exists;
-    },
     getCurrentDirectory: realHost.getCurrentDirectory.bind(realHost),
     getDirectories: realHost?.getDirectories?.bind(realHost),
     getCanonicalFileName: (fileName) => realHost.getCanonicalFileName(fileName),
@@ -125,8 +100,9 @@ async function compileFile(file: string): Promise<{
     throw new Error(ts.formatDiagnostic(readConfigFileResult.error, formatHost));
   }
   const jsonConfig = readConfigFileResult.config;
-  const { rootPath } = jsonConfig;
-  const convertResult = ts.convertCompilerOptionsFromJson(jsonConfig, './');
+  const { rootDir } = jsonConfig.compilerOptions;
+  console.log(rootDir);
+  const convertResult = ts.convertCompilerOptionsFromJson({}, rootDir, configPath);
   if (convertResult.errors && convertResult.errors.length > 0) {
     throw new Error(ts.formatDiagnostics(convertResult.errors, formatHost));
   }

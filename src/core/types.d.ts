@@ -6,12 +6,12 @@
  * License Text: THE SOFTWARE IS PROVIDED 'AS IS'
  * Copyright: prisma-api (c), All rights reserved
  * Create date: Thu Oct 14 2021 17:46:52 GMT+0700 (Krasnoyarsk Standard Time)
-******************************************************************************************/
+ ******************************************************************************************/
 /* eslint-disable no-unused-vars */
 import type * as E from 'express';
 import { User } from '@prisma/client';
-import type { Locale } from './core/locales/types';
-namespace Api {
+import type { Locale } from './locales/types';
+declare namespace Api {
   export type Status = 'error' | 'warning' | 'success';
 
   export interface Result<T> {

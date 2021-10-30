@@ -10,11 +10,11 @@
 /**
  * Вспомогательные функции
  */
-import type express from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
-import Mail from 'nodemailer/lib/mailer';
+import type * as express from 'express';
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+import * as nodemailer from 'nodemailer';
+import * as Mail from 'nodemailer/lib/mailer';
 // Переводит html в текст для приложений клиентов, которые не могут читать html
 import { htmlToText } from 'html-to-text';
 import type * as Types from '../types';
@@ -320,6 +320,7 @@ export class Email {
   private emailObject: EmailLanguageObject;
 
   constructor() {
+    // TODO
     this.transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: parseInt(SMTP_PORT, 10),
