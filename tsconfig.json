@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "commonjs",
+    "lib": ["ESNext"],
     "strict": true,
     "allowJs": true,
     "outDir": "dist",
@@ -12,9 +13,8 @@
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "moduleResolution": "node"
   },
-  "exclude": ["app", "dist"],
-  "compileOnSave": true,
-  "include": ["src/index.d.ts", "node_modules/**/*.d.ts", "node_modules/**/**/*.d.ts"]
+  "exclude": ["app", "dist", "tmp"],
+  "compileOnSave": true
 }

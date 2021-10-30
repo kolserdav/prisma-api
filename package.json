@@ -11,7 +11,7 @@
     "schema": "src/core/orm/schema.prisma"
   },
   "bin": {
-    "prisma-api": "./dist/bin/prisma-api.js"
+    "papi": "./dist/bin/papi.js"
   },
   "types": "index.d.ts",
   "engines": {
@@ -28,11 +28,10 @@
   "scripts": {
     "start": "node ${npm_package_main}",
     "watch": "tsc -p . -w",
-    "bins": "NPM_PACKAGE_VERSION=${npm_package_version} ./dist/bin/prisma-api.js",
+    "bins": "NPM_PACKAGE_VERSION=${npm_package_version} ./dist/bin/papi.js",
     "dev": "NODE_ENV=development nodemon ${npm_package_main}",
     "start:win": "set NODE_ENV=development && nodemon ${npm_package_main}",
-    "dev:build": "tsc -p . && yarn script env",
-    "build": "tsc -p .",
+    "build": "tsc -p . && yarn script env",
     "migrate:dev": "yarn format && yarn generate && prisma migrate dev --preview-feature",
     "migrate": "prisma migrate deploy --preview-feature && yarn generate",
     "migrate:reset": "prisma migrate reset --preview-feature",

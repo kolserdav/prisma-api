@@ -13,7 +13,7 @@
  * своего сервера
  */
 import dotenv from 'dotenv';
-import express from 'express';
+import * as express from 'express';
 dotenv.config();
 
 import server from './workers/server';
